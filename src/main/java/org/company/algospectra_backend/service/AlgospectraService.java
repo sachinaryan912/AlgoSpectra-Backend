@@ -20,7 +20,6 @@ public class AlgospectraService {
         User user = new User();
         user.setUsername(name);
         user.setEmailId(email);
-        // Encrypt password before saving
         user.setPassword(passwordEncoder.encode(password));
         user.setGuest(false);
         return repo.save(user);
