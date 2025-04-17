@@ -47,6 +47,12 @@ src/
 
 ## 🔗 API Endpoints
 
+### 🧪 Health Check
+
+- **GET** `/algohealth`  
+  ⮕ Check if the API is alive and responsive.
+
+---
 ### 🔐 Auth
 
 #### `POST /api/auth/register`
