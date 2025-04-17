@@ -1,14 +1,12 @@
-# Use an OpenJDK base image
-FROM openjdk:17-jdk-slim
-
-# Set working directory inside the container
+# Stage 1: Build with Maven
+FROM maven:3.9.4-eclipse-temurin-17 AS builder
 WORKDIR /app
+COPY . .
+RUN mvn clean package -DskipTests
 
-# Copy the built JAR from target directory (adjust JAR name as needed)
-COPY target/algospectra-backend-0.0.1-SNAPSHOT.jar app.jar
-
-# Expose port 8080 (Spring Boot default)
+# Stage 2: Run with JDK
+FROM openjdk:17-jdk-slim
+WORKDIR /app
+COPY --from=builder /app/target/algospectra-backend-0.0.1-SNAPSHOT.jar app.jar
 EXPOSE 8080
-
-# Command to run the Spring Boot app
 ENTRYPOINT ["java", "-jar", "app.jar"]
