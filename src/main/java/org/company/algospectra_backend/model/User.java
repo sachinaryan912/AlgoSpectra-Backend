@@ -6,7 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.UUID;
+import java.time.OffsetDateTime;
 
 @Entity
 @Table(name = "AlgoUsers")
@@ -16,14 +16,19 @@ import java.util.UUID;
 public class User {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    private String name;
+    @Column(name = "created_at", columnDefinition = "TIMESTAMPTZ")
+    private OffsetDateTime createdAt;
 
-    @Column(unique = true)
-    private String email;
+    @Column(name = "username", nullable = false)
+    private String username;
 
+    @Column(name = "email_id", nullable = false, unique = true)
+    private String emailId;
+
+    @Column(name = "password", nullable = false)
     private String password;
 
     private boolean guest;

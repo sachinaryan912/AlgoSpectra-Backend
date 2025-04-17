@@ -1,15 +1,14 @@
 package org.company.algospectra_backend.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.company.algospectra_backend.model.User;
 import org.company.algospectra_backend.service.AlgospectraService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -17,7 +16,6 @@ import java.util.Map;
 public class AuthController {
 
     private final AlgospectraService service;
-    private final AuthenticationManager authManager;
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody Map<String, String> payload) {
@@ -27,15 +25,20 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Map<String, String> payload) {
-        var token = new UsernamePasswordAuthenticationToken(payload.get("email"), payload.get("password"));
-        authManager.authenticate(token);
+        Optional<User> user = service.login(payload.get("email"), payload.get("password"));
+
+        if (user.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+        }
+
         return ResponseEntity.ok("Login successful");
     }
 
-    @GetMapping("/profile")
-    public ResponseEntity<?> profile(Authentication authentication) {
-        return service.getByEmail(authentication.getName())
+    @GetMapping("/profile/{email}")
+    public ResponseEntity<?> profile(@PathVariable String email) {
+        return service.getByEmail(email)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
+
 }
