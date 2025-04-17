@@ -1,10 +1,19 @@
 # AlgoSpectra Backend
 
-The **AlgoSpectra Backend** is a Spring Boot application built with Java 17 and PostgreSQL. It powers the authentication, guest login, user profile management, and secure access for the AlgoSpectra platform.
+<table>
+  <tr>
+    <td style="vertical-align: middle; width: 100px;">
+      <img src="https://github.com/user-attachments/assets/a162ef20-38a5-4341-98af-4f53ffd7ee91" alt="algospectra-logo" width="100" height="100">
+    </td>
+    <td style="vertical-align: middle; padding-left: 15px;">
+      <strong>The AlgoSpectra Backend</strong> is a Spring Boot application built with Java 17 and PostgreSQL.<br>
+      It powers the authentication, guest login, user profile management, and secure access for the AlgoSpectra platform.<br><br>
+      Hosted on <strong>Render</strong>, the backend is connected to a <strong>Supabase PostgreSQL</strong> database.
+    </td>
+  </tr>
+</table>
 
-Hosted on **Render**, the backend is connected to a **Supabase PostgreSQL** database.
 
----
 
 ## 🚀 Features
 
@@ -15,7 +24,7 @@ Hosted on **Render**, the backend is connected to a **Supabase PostgreSQL** data
 - 👤 View logged-in user's profile
 - 📦 PostgreSQL integration (Supabase)
 
----
+
 
 ## ⚙️ Tech Stack
 
@@ -26,7 +35,7 @@ Hosted on **Render**, the backend is connected to a **Supabase PostgreSQL** data
 - **JPA / Hibernate**
 - **HikariCP**
 
----
+
 
 ## 📁 Project Structure
 
@@ -46,6 +55,12 @@ src/
 ---
 
 ## 🔗 API Endpoints
+
+### 🧪 Health Check
+
+- **GET** `/algohealth`  
+  ⮕ Check if the API is alive and responsive.
+
 
 ### 🔐 Auth
 
@@ -83,7 +98,7 @@ Logs out the current user. Clears session or token.
 
 ### 👤 Profile
 
-#### `GET /api/profile/me`
+#### `GET /api/profile/{emailId}`
 Returns profile details of the logged-in user (guest or registered).
 
 **Response:**
