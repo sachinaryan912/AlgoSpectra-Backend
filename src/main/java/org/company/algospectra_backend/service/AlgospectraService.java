@@ -43,8 +43,8 @@ public class AlgospectraService {
     }
 
     public User guestLogin(){
-        String guestUsername = "AlgoGuest_" + UUID.randomUUID().toString().substring(0, 12);
-        String guestEmail = guestUsername + "@guest.com";
+        String guestUsername = "algoguest_" + UUID.randomUUID().toString().substring(0, 12);
+        String guestEmail = guestUsername + "@algospectra.com";
         Optional<User> existingGuest = repo.findByEmailId(guestEmail);
         return existingGuest.orElseGet(() -> {
             User newGuest = new User();
@@ -58,6 +58,10 @@ public class AlgospectraService {
 
     public Page<User> getAllUsers(Pageable pageable) {
         return repo.findAllByRoleNot(Role.ADMIN, pageable);
+    }
+
+    public Optional<User> getUserByEmail(String emailId) {
+        return repo.findByEmailId(emailId);
     }
 
 

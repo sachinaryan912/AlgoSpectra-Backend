@@ -54,22 +54,20 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
 
-        User user = userOpt.get();
-
-        String token = jwtUtil.generateToken(payload.get("email"));
+        String token = jwtUtil.generateToken(payload.get("email"), String.valueOf(userOpt.get().getRole()));
 
         response.put("status", "success");
         response.put("message", "Login successful");
-        response.put("user", user);
         response.put("access_token", token);
         return ResponseEntity.ok(response);
     }
 
 
     @PostMapping("/guest-login")
+    @RateLimit(limit = 100, duration = 1, timeUnit = TimeUnit.MINUTES)
     public ResponseEntity<?> guestLogin() {
         User guestUser = service.guestLogin();
-        String token = jwtUtil.generateToken(guestUser.getEmailId());
+        String token = jwtUtil.generateToken(guestUser.getEmailId(), String.valueOf(guestUser.getRole()));
         Map<String, Object> response = new HashMap<>();
         response.put("token", token);
         response.put("username", guestUser.getUsername());
@@ -110,6 +108,38 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
+
+    @GetMapping("/profile")
+    @RateLimit(limit = 100, duration = 1, timeUnit = TimeUnit.MINUTES)
+    public ResponseEntity<?> getUserProfile(@RequestParam String emailId, @RequestHeader("Authorization") String token) {
+
+        String tokenEmail = jwtUtil.extractEmail(token.replace("Bearer ", ""));
+        if (!tokenEmail.equals(emailId)) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("message", "Unauthorized: You can only access your own profile.");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+        }
+
+        // Fetch user profile from the database
+        Optional<User> userOpt = service.getUserByEmail(emailId);
+
+        if (userOpt.isEmpty()) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("message", "User not found");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        }
+
+        User user = userOpt.get();
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", true);
+        response.put("message", "User profile fetched successfully");
+
+        response.put("profile", user);
+
+        return ResponseEntity.ok(response);
+    }
 
 
     @DeleteMapping("/delete/{email}")
