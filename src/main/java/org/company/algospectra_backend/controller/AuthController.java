@@ -116,7 +116,7 @@ public class AuthController {
         String tokenEmail = jwtUtil.extractEmail(token.replace("Bearer ", ""));
         if (!tokenEmail.equals(emailId)) {
             Map<String, Object> response = new HashMap<>();
-            response.put("success", false);
+            response.put("status", "Unauthorized");
             response.put("message", "Unauthorized: You can only access your own profile.");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
         }
@@ -126,14 +126,14 @@ public class AuthController {
 
         if (userOpt.isEmpty()) {
             Map<String, Object> response = new HashMap<>();
-            response.put("success", false);
+            response.put("status", "not found");
             response.put("message", "User not found");
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
 
         User user = userOpt.get();
         Map<String, Object> response = new HashMap<>();
-        response.put("success", true);
+        response.put("status", "success");
         response.put("message", "User profile fetched successfully");
 
         response.put("profile", user);
@@ -144,7 +144,17 @@ public class AuthController {
 
     @DeleteMapping("/delete/{email}")
     @RateLimit(limit = 50, duration = 1, timeUnit = TimeUnit.MINUTES)
-    public ResponseEntity<Map<String, Object>> deleteAccount(@PathVariable String email) {
+    public ResponseEntity<Map<String, Object>> deleteAccount(@PathVariable String email,@RequestHeader("Authorization") String token) {
+
+
+        String tokenEmail = jwtUtil.extractEmail(token.replace("Bearer ", ""));
+        if (!tokenEmail.equals(email)) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("status", "Unauthorized");
+            response.put("message", "Unauthorized: You can only delete  your own profile.");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+        }
+
         boolean deleted = service.deleteUserByEmail(email);
 
         Map<String, Object> response = new HashMap<>();

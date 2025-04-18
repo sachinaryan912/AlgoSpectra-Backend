@@ -19,6 +19,7 @@
 
 - ✅ Guest login with auto-generated unique guest ID
 - 🔐 Secure user registration and login with email, password, and name
+- JWT Authentication
 - ❌ Global error handling
 - 🔐 Variable Rate limiting per per endpoints call
 - 🔁 Persistent login with remember-me functionality using cookies or refresh tokens
@@ -119,7 +120,8 @@ src/
         "name": "string",
         "email": "string",
         "createdAt": "string"
-      }
+      },
+    "access_token": "eypzs24222355"
     }
     ```
   - **Status:** 404 Not Found (Invalid credentials or user not found)
@@ -164,6 +166,12 @@ src/
 - **Description:** Deletes a user account by their email.
 - **Path Variable:**
   - `email`: The email of the user to be deleted.
+
+**Headers:**
+```
+Authorization: Bearer <your_jwt_token>
+```
+
 - **Response:**
   - **Status:** 200 OK (Success)
     ```json
@@ -179,6 +187,60 @@ src/
       "message": "User not found or could not delete"
     }
     ```
+
+### 🧑‍🚀 Guest Login
+This endpoint allows a temporary guest user to log in without registration. A unique guest token is issued, which can be used for temporary session tracking.
+
+#### `POST /api/auth/guest-login`
+
+**Request:**
+No body required.
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Guest login successful",
+  "guestId": "guest_4a7d12ea",
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+```
+
+---
+
+### 🙋‍♂️ Get Your Profile
+
+This endpoint fetches the authenticated user's profile. It verifies that the email in the token matches the requested email to prevent unauthorized access.
+
+#### `GET /api/auth/profile?emailId=your@email.com`
+
+**Headers:**
+```
+Authorization: Bearer <your_jwt_token>
+```
+
+**Response (Success):**
+```json
+{
+  "success": true,
+  "message": "User profile fetched successfully",
+  "profile": {
+    "id": 1,
+    "username": "john_doe",
+    "emailId": "john@example.com",
+    "createdAt": "2025-04-18T10:22:34Z",
+    "role": "USER"
+  }
+}
+```
+
+**Response (Unauthorized):**
+```json
+{
+  "success": false,
+  "message": "Unauthorized: You can only access your own profile."
+}
+```
 
 ## Error Handling
 
