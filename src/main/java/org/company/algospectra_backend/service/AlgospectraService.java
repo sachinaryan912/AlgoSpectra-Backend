@@ -3,6 +3,8 @@ package org.company.algospectra_backend.service;
 import lombok.RequiredArgsConstructor;
 import org.company.algospectra_backend.model.User;
 import org.company.algospectra_backend.repository.AlgospectraRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -38,6 +40,22 @@ public class AlgospectraService {
         }
         return Optional.empty();
     }
+
+    public Page<User> getAllUsers(Pageable pageable) {
+        return repo.findAll(pageable);
+    }
+
+
+
+    public boolean deleteUserByEmail(String email) {
+        Optional<User> userOpt = repo.findByEmailId(email);
+        if (userOpt.isPresent()) {
+            repo.delete(userOpt.get());
+            return true;
+        }
+        return false;
+    }
+
 
     // Get user by email
     public Optional<User> getByEmail(String email) {

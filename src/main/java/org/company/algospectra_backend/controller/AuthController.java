@@ -3,12 +3,15 @@ package org.company.algospectra_backend.controller;
 import lombok.RequiredArgsConstructor;
 import org.company.algospectra_backend.model.User;
 import org.company.algospectra_backend.service.AlgospectraService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -18,27 +21,79 @@ public class AuthController {
     private final AlgospectraService service;
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody Map<String, String> payload) {
-        var user = service.register(payload.get("name"), payload.get("email"), payload.get("password"));
-        return ResponseEntity.ok(user);
+    public ResponseEntity<Map<String, Object>> register(@RequestBody Map<String, String> payload) {
+        User user = service.register(payload.get("name"), payload.get("email"), payload.get("password"));
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", "success");
+        response.put("message", "Registration successful");
+        response.put("user", user);
+
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody Map<String, String> payload) {
-        Optional<User> user = service.login(payload.get("email"), payload.get("password"));
+    public ResponseEntity<Map<String, Object>> login(@RequestBody Map<String, String> payload) {
+        Optional<User> userOpt = service.login(payload.get("email"), payload.get("password"));
+        Map<String, Object> response = new HashMap<>();
 
-        if (user.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+        if (userOpt.isEmpty()) {
+            response.put("status", "error");
+            response.put("message", "User not found or invalid credentials");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
 
-        return ResponseEntity.ok("Login successful");
+        response.put("status", "success");
+        response.put("message", "Login successful");
+        response.put("user", userOpt.get());
+        return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/profile/{email}")
-    public ResponseEntity<?> profile(@PathVariable String email) {
-        return service.getByEmail(email)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+    @GetMapping("/profiles")
+    public ResponseEntity<Map<String, Object>> getAllProfiles(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        Page<User> userPage = service.getAllUsers(pageable); // updated service method
+
+        List<Map<String, Object>> userList = new ArrayList<>();
+        for (User user : userPage.getContent()) {
+            Map<String, Object> userData = new HashMap<>();
+            userData.put("id", user.getId());
+            userData.put("name", user.getUsername());
+            userData.put("email", user.getEmailId());
+            userData.put("userSince", user.getCreatedAt());
+            userList.add(userData);
+        }
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", "success");
+        response.put("message", "User profiles retrieved");
+        response.put("totalUsers", userPage.getTotalElements());
+        response.put("currentPage", userPage.getNumber());
+        response.put("totalPages", userPage.getTotalPages());
+        response.put("users", userList);
+
+        return ResponseEntity.ok(response);
+    }
+
+
+
+    @DeleteMapping("/delete/{email}")
+    public ResponseEntity<Map<String, Object>> deleteAccount(@PathVariable String email) {
+        boolean deleted = service.deleteUserByEmail(email);
+
+        Map<String, Object> response = new HashMap<>();
+        if (deleted) {
+            response.put("status", "success");
+            response.put("message", "Account deleted successfully");
+            return ResponseEntity.ok(response);
+        } else {
+            response.put("status", "error");
+            response.put("message", "User not found or could not delete");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        }
     }
 
 }
