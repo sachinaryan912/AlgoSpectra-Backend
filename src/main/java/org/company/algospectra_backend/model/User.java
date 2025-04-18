@@ -35,5 +35,7 @@ public class User {
     @JsonIgnore
     private String password;
 
-    private boolean guest;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Role role = Role.USER;
 }

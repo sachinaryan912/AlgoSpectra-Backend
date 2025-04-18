@@ -1,6 +1,7 @@
 package org.company.algospectra_backend.service;
 
 import lombok.RequiredArgsConstructor;
+import org.company.algospectra_backend.model.Role;
 import org.company.algospectra_backend.model.User;
 import org.company.algospectra_backend.repository.AlgospectraRepository;
 import org.springframework.data.domain.Page;
@@ -9,6 +10,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -23,7 +25,6 @@ public class AlgospectraService {
         user.setUsername(name);
         user.setEmailId(email);
         user.setPassword(passwordEncoder.encode(password));
-        user.setGuest(false);
         return repo.save(user);
     }
 
@@ -41,8 +42,26 @@ public class AlgospectraService {
         return Optional.empty();
     }
 
+    public User guestLogin(){
+        String guestUsername = "algoguest_" + UUID.randomUUID().toString().substring(0, 12);
+        String guestEmail = guestUsername + "@algospectra.com";
+        Optional<User> existingGuest = repo.findByEmailId(guestEmail);
+        return existingGuest.orElseGet(() -> {
+            User newGuest = new User();
+            newGuest.setUsername(guestUsername);
+            newGuest.setEmailId(guestEmail);
+            newGuest.setPassword(UUID.randomUUID().toString());
+            newGuest.setRole(Role.GUEST);
+            return repo.save(newGuest);
+        });
+    }
+
     public Page<User> getAllUsers(Pageable pageable) {
-        return repo.findAll(pageable);
+        return repo.findAllByRoleNot(Role.ADMIN, pageable);
+    }
+
+    public Optional<User> getUserByEmail(String emailId) {
+        return repo.findByEmailId(emailId);
     }
 
 

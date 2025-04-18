@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.company.algospectra_backend.model.User;
 import org.company.algospectra_backend.ratelimiter.RateLimit;
 import org.company.algospectra_backend.service.AlgospectraService;
+import org.company.algospectra_backend.util.JwtUtil;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -16,11 +18,16 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 @RestController
+@CrossOrigin(origins = "*")
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class AuthController {
 
     private final AlgospectraService service;
+
+    @Autowired
+    private JwtUtil jwtUtil;
+
 
     @PostMapping("/register")
     @RateLimit(limit = 5, duration = 1, timeUnit = TimeUnit.MINUTES)
@@ -47,11 +54,29 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
 
+        String token = jwtUtil.generateToken(payload.get("email"), String.valueOf(userOpt.get().getRole()));
+
         response.put("status", "success");
         response.put("message", "Login successful");
-        response.put("user", userOpt.get());
+        response.put("access_token", token);
         return ResponseEntity.ok(response);
     }
+
+
+    @PostMapping("/guest-login")
+    @RateLimit(limit = 100, duration = 1, timeUnit = TimeUnit.MINUTES)
+    public ResponseEntity<?> guestLogin() {
+        User guestUser = service.guestLogin();
+        String token = jwtUtil.generateToken(guestUser.getEmailId(), String.valueOf(guestUser.getRole()));
+        Map<String, Object> response = new HashMap<>();
+        response.put("token", token);
+        response.put("username", guestUser.getUsername());
+        response.put("role", guestUser.getRole());
+
+        return ResponseEntity.ok(response);
+    }
+
+
 
     @GetMapping("/profiles")
     @RateLimit(limit = 100, duration = 1, timeUnit = TimeUnit.MINUTES)
@@ -83,6 +108,38 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
+
+    @GetMapping("/profile")
+    @RateLimit(limit = 100, duration = 1, timeUnit = TimeUnit.MINUTES)
+    public ResponseEntity<?> getUserProfile(@RequestParam String emailId, @RequestHeader("Authorization") String token) {
+
+        String tokenEmail = jwtUtil.extractEmail(token.replace("Bearer ", ""));
+        if (!tokenEmail.equals(emailId)) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("message", "Unauthorized: You can only access your own profile.");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+        }
+
+        // Fetch user profile from the database
+        Optional<User> userOpt = service.getUserByEmail(emailId);
+
+        if (userOpt.isEmpty()) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("message", "User not found");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        }
+
+        User user = userOpt.get();
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", true);
+        response.put("message", "User profile fetched successfully");
+
+        response.put("profile", user);
+
+        return ResponseEntity.ok(response);
+    }
 
 
     @DeleteMapping("/delete/{email}")
