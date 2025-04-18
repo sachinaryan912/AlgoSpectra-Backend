@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.company.algospectra_backend.model.User;
 import org.company.algospectra_backend.ratelimiter.RateLimit;
 import org.company.algospectra_backend.service.AlgospectraService;
+import org.company.algospectra_backend.util.JwtUtil;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -16,11 +18,16 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 @RestController
+@CrossOrigin(origins = "*")
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class AuthController {
 
     private final AlgospectraService service;
+
+    @Autowired
+    private JwtUtil jwtUtil;
+
 
     @PostMapping("/register")
     @RateLimit(limit = 5, duration = 1, timeUnit = TimeUnit.MINUTES)
@@ -47,11 +54,31 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
 
+        User user = userOpt.get();
+
+        String token = jwtUtil.generateToken(payload.get("email"));
+
         response.put("status", "success");
         response.put("message", "Login successful");
-        response.put("user", userOpt.get());
+        response.put("user", user);
+        response.put("access_token", token);
         return ResponseEntity.ok(response);
     }
+
+
+    @PostMapping("/guest-login")
+    public ResponseEntity<?> guestLogin() {
+        User guestUser = service.guestLogin();
+        String token = jwtUtil.generateToken(guestUser.getEmailId());
+        Map<String, Object> response = new HashMap<>();
+        response.put("token", token);
+        response.put("username", guestUser.getUsername());
+        response.put("role", guestUser.getRole());
+
+        return ResponseEntity.ok(response);
+    }
+
+
 
     @GetMapping("/profiles")
     @RateLimit(limit = 100, duration = 1, timeUnit = TimeUnit.MINUTES)
