@@ -2,6 +2,7 @@ package org.company.algospectra_backend.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.company.algospectra_backend.model.User;
+import org.company.algospectra_backend.ratelimiter.RateLimit;
 import org.company.algospectra_backend.service.AlgospectraService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -12,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -21,6 +23,7 @@ public class AuthController {
     private final AlgospectraService service;
 
     @PostMapping("/register")
+    @RateLimit(limit = 5, duration = 1, timeUnit = TimeUnit.MINUTES)
     public ResponseEntity<Map<String, Object>> register(@RequestBody Map<String, String> payload) {
         User user = service.register(payload.get("name"), payload.get("email"), payload.get("password"));
 
@@ -33,6 +36,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
+    @RateLimit(limit = 5, duration = 1, timeUnit = TimeUnit.MINUTES)
     public ResponseEntity<Map<String, Object>> login(@RequestBody Map<String, String> payload) {
         Optional<User> userOpt = service.login(payload.get("email"), payload.get("password"));
         Map<String, Object> response = new HashMap<>();
@@ -50,6 +54,7 @@ public class AuthController {
     }
 
     @GetMapping("/profiles")
+    @RateLimit(limit = 100, duration = 1, timeUnit = TimeUnit.MINUTES)
     public ResponseEntity<Map<String, Object>> getAllProfiles(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
@@ -81,6 +86,7 @@ public class AuthController {
 
 
     @DeleteMapping("/delete/{email}")
+    @RateLimit(limit = 50, duration = 1, timeUnit = TimeUnit.MINUTES)
     public ResponseEntity<Map<String, Object>> deleteAccount(@PathVariable String email) {
         boolean deleted = service.deleteUserByEmail(email);
 

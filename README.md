@@ -19,6 +19,8 @@
 
 - ✅ Guest login with auto-generated unique guest ID
 - 🔐 Secure user registration and login with email, password, and name
+- ❌ Global error handling
+- 🔐 Variable Rate limiting per per endpoints call
 - 🔁 Persistent login with remember-me functionality using cookies or refresh tokens
 - 🔓 Logout support
 - 👤 View logged-in user's profile
@@ -47,6 +49,7 @@ src/
 │   ├── model
 │   ├── repository
 │   ├── exception
+│   ├── ratelimiter
 │   ├── service
 │   └── AlgospectraBackendApplication.java
 └── resources

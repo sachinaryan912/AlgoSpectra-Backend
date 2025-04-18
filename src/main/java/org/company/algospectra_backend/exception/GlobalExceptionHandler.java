@@ -1,5 +1,6 @@
 package org.company.algospectra_backend.exception;
 
+import org.company.algospectra_backend.ratelimiter.RateLimitExceededException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -7,6 +8,9 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ResponseStatus;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
@@ -40,6 +44,15 @@ public class GlobalExceptionHandler {
         }
         return "Data integrity violation occurred.";
     }
+
+    @ExceptionHandler(RateLimitExceededException.class)
+    public ResponseEntity<Map<String, Object>> handleRateLimitExceeded(RateLimitExceededException ex) {
+        Map<String, Object> error = new HashMap<>();
+        error.put("status", "error");
+        error.put("message", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(error);
+    }
+
 
     public static class ErrorResponse {
         private String error;
