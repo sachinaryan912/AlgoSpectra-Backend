@@ -1,10 +1,12 @@
 package org.company.algospectra_backend.model;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.OffsetDateTime;
 
@@ -20,6 +22,7 @@ public class User {
     private Long id;
 
     @Column(name = "created_at", columnDefinition = "TIMESTAMPTZ")
+    @CreationTimestamp
     private OffsetDateTime createdAt;
 
     @Column(name = "username", nullable = false)
@@ -29,6 +32,7 @@ public class User {
     private String emailId;
 
     @Column(name = "password", nullable = false)
+    @JsonIgnore
     private String password;
 
     private boolean guest;

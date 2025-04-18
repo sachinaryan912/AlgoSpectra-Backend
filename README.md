@@ -19,6 +19,8 @@
 
 - ✅ Guest login with auto-generated unique guest ID
 - 🔐 Secure user registration and login with email, password, and name
+- ❌ Global error handling
+- 🔐 Variable Rate limiting per per endpoints call
 - 🔁 Persistent login with remember-me functionality using cookies or refresh tokens
 - 🔓 Logout support
 - 👤 View logged-in user's profile
@@ -42,14 +44,17 @@
 ```
 src/
 ├── main/java/org/company/algospectra_backend
+│   ├── config
 │   ├── controller
 │   ├── model
 │   ├── repository
-│   ├── security
+│   ├── exception
+│   ├── ratelimiter
 │   ├── service
 │   └── AlgospectraBackendApplication.java
 └── resources
     ├── application.properties
+    └── application-local.properties
 ```
 
 ---
@@ -64,52 +69,120 @@ src/
 
 ### 🔐 Auth
 
-#### `POST /api/auth/register`
-Registers a new user.
+### 1. **User Registration**
 
-**Request Body:**
-```json
-{
-  "name": "Sachin Kumar",
-  "email": "sachin@example.com",
-  "password": "securePassword123"
-}
-```
+- **Endpoint:** `POST /api/auth/register`
+- **Description:** Registers a new user by providing their name, email, and password.
+- **Request Body:**
+  ```json
+  {
+    "name": "string",
+    "email": "string",
+    "password": "string"
+  }
+  ```
+- **Response:**
+  - **Status:** 200 OK (Success)
+  - **Response Body:**
+  ```json
+  {
+    "status": "success",
+    "message": "Registration successful",
+    "user": {
+      "id": "string",
+      "name": "string",
+      "email": "string",
+      "createdAt": "string"
+    }
+  }
+  ```
 
-#### `POST /api/auth/login`
-Logs in a user.
+### 2. **User Login**
 
-**Request Body:**
-```json
-{
-  "email": "sachin@example.com",
-  "password": "securePassword123",
-  "rememberMe": true
-}
-```
+- **Endpoint:** `POST /api/auth/login`
+- **Description:** Authenticates a user based on their email and password.
+- **Request Body:**
+  ```json
+  {
+    "email": "string",
+    "password": "string"
+  }
+  ```
+- **Response:**
+  - **Status:** 200 OK (Success)
+    ```json
+    {
+      "status": "success",
+      "message": "Login successful",
+      "user": {
+        "id": "string",
+        "name": "string",
+        "email": "string",
+        "createdAt": "string"
+      }
+    }
+    ```
+  - **Status:** 404 Not Found (Invalid credentials or user not found)
+    ```json
+    {
+      "status": "error",
+      "message": "User not found or invalid credentials"
+    }
+    ```
 
-#### `POST /api/auth/guest-login`
-Logs in a temporary guest user. Generates a unique guest ID.
+### 3. **Get All User Profiles**
 
-#### `POST /api/auth/logout`
-Logs out the current user. Clears session or token.
+- **Endpoint:** `GET /api/auth/profiles`
+- **Description:** Retrieves a paginated list of all user profiles.
+- **Query Parameters:**
+  - `page`: Page number (optional, default is `0`)
+  - `size`: Number of records per page (optional, default is `10`)
+- **Response:**
+  - **Status:** 200 OK
+    ```json
+    {
+      "status": "success",
+      "message": "User profiles retrieved",
+      "totalUsers": "total_count",
+      "currentPage": "current_page",
+      "totalPages": "total_pages",
+      "users": [
+        {
+          "id": "string",
+          "name": "string",
+          "email": "string",
+          "userSince": "string"
+        },
+        ...
+      ]
+    }
+    ```
 
----
+### 4. **Delete User Account**
 
-### 👤 Profile
+- **Endpoint:** `DELETE /api/auth/delete/{email}`
+- **Description:** Deletes a user account by their email.
+- **Path Variable:**
+  - `email`: The email of the user to be deleted.
+- **Response:**
+  - **Status:** 200 OK (Success)
+    ```json
+    {
+      "status": "success",
+      "message": "Account deleted successfully"
+    }
+    ```
+  - **Status:** 404 Not Found (User not found or error during deletion)
+    ```json
+    {
+      "status": "error",
+      "message": "User not found or could not delete"
+    }
+    ```
 
-#### `GET /api/profile/{emailId}`
-Returns profile details of the logged-in user (guest or registered).
+## Error Handling
 
-**Response:**
-```json
-{
-  "id": "user-or-guest-id",
-  "name": "Sachin Kumar",
-  "email": "sachin@example.com",
-  "role": "USER" | "GUEST"
-}
-```
+The API will return appropriate error messages with relevant HTTP status codes (e.g., `400 Bad Request`, `404 Not Found`, `500 Internal Server Error`) for unsuccessful requests.
 
 ---
 
