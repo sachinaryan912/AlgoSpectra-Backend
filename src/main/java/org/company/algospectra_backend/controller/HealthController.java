@@ -13,6 +13,7 @@ import java.util.concurrent.TimeUnit;
 
 @RestController
 @RequestMapping
+@CrossOrigin(origins = "*") // Allow all origins for CORS
 @RequiredArgsConstructor
 public class HealthController {
 
