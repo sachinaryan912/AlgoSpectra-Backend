@@ -13,7 +13,6 @@ import java.util.concurrent.TimeUnit;
 
 @RestController
 @RequestMapping
-@CrossOrigin(origins = "*")
 @RequiredArgsConstructor
 public class HealthController {
 
