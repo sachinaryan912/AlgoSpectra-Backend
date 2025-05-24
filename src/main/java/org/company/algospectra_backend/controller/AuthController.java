@@ -18,7 +18,6 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 @RestController
-@CrossOrigin(origins = "*")
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class AuthController {
