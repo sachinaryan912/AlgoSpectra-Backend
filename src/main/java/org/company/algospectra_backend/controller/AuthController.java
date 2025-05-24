@@ -18,6 +18,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 @RestController
+@CrossOrigin(origins = "*") // Allow all origins for CORS
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class AuthController {

@@ -39,7 +39,7 @@ public class SecurityConfig {
                                 "/api/auth/login",
                                 "/api/auth/register",
                                 "/algohealth",
-                                "/api/auth/profiles",
+                                "/api/auth/profile",
                                 "/api/auth/guest-login"
                         ).permitAll()
                         .anyRequest().authenticated()
@@ -62,7 +62,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOriginPatterns(List.of("*")); // ✅ Universal wildcard
+        config.setAllowedOrigins(List.of("http://localhost:3000", "https://algospectra.com"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setExposedHeaders(List.of("Authorization"));
